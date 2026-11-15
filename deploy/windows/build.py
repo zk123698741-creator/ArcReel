@@ -51,7 +51,8 @@ def main():
     git_root = git_exe.parent.parent
     if not (git_root / "bin/bash.exe").is_file():
         raise RuntimeError(f"Git for Windows with Bash is required at build time: {git_root}")
-    for name in ("bin", "cmd", "etc", "mingw64", "usr"):
+    native_dir = Path(run(git_exe, "--exec-path")).relative_to(git_root).parts[0]
+    for name in ("bin", "cmd", "etc", native_dir, "usr"):
         copy_tree(git_root / name, bundle / "git" / name)
     for name in ("LICENSE.txt", "ReleaseNotes.html"):
         if (git_root / name).is_file():
@@ -59,7 +60,7 @@ def main():
     csc = Path(os.environ["WINDIR"]) / "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
     print(run(csc, "/nologo", "/utf8output", "/target:winexe", "/platform:x64", "/reference:System.Windows.Forms.dll", f"/out:{bundle / 'ArcReel.exe'}", HERE / "Launcher.cs"))
     version = json.loads((ROOT / "frontend/package.json").read_text(encoding="utf-8"))["version"]
-    manifest = {"version": version, "commit": run("git", "rev-parse", "HEAD"), "python": run(python, "--version"), "git": run("git", "--version")}
+    manifest = {"version": version, "commit": run("git", "rev-parse", "HEAD"), "python": run(python, "--version"), "git": run("git", "--version"), "git_native_dir": native_dir}
     (bundle / "build-info.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(run(python, HERE / "smoke.py", "--bundle", bundle))
     print(run(args.iscc, f"/DAppVersion={version}", f"/DBundleDir={bundle}", f"/DOutputDirPath={output}", HERE / "setup.iss"))
