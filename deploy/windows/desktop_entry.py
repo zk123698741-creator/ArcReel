@@ -55,7 +55,7 @@ def main():
     os.environ["ARCREEL_BUILD_COMMIT"] = manifest["commit"]
     os.environ["PATH"] = os.pathsep.join(str(p) for p in (
         root / "python", root / "git" / "cmd", root / "git" / "bin",
-        root / "git" / "usr" / "bin", root / "git" / "mingw64" / "bin",
+        root / "git" / "usr" / "bin", root / "git" / manifest.get("git_native_dir", "mingw64") / "bin",
     )) + os.pathsep + os.environ.get("PATH", "")
     os.environ["CLAUDE_CODE_GIT_BASH_PATH"] = str(root / "git" / "bin" / "bash.exe")
     os.chdir(Path(__file__).resolve().parent)
