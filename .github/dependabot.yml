@@ -5,6 +5,19 @@
 
 version: 2
 updates:
+  - package-ecosystem: "npm"
+    directory: "/deploy/windows"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-patch-days: 3
+    groups:
+      desktop-runtime:
+        patterns: ["electron"]
+        update-types: ["minor", "patch"]
+
   # Python dependencies via uv (pyproject.toml + uv.lock)
   - package-ecosystem: "uv"
     directory: "/"
