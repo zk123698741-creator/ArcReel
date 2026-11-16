@@ -1,0 +1,11 @@
+{
+  "name": "arcreel-windows-build",
+  "version": "1.0.0",
+  "description": "ArcReel standalone desktop build dependencies",
+  "license": "AGPL-3.0-only",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "45.3.2"
+  },
+  "private": true
+}

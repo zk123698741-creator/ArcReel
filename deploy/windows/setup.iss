@@ -9,7 +9,7 @@
 #endif
 [Setup]
 AppId={{5A203140-3342-4724-B32F-76F71812EC27}
-AppName=ArcReel Desktop
+AppName=ArcReel 创作工作台
 AppVersion={#AppVersion}
 AppPublisher=ArcReel contributors
 DefaultDirName={localappdata}\Programs\ArcReel
@@ -28,8 +28,11 @@ UninstallDisplayIcon={app}\ArcReel.exe
 CloseApplications=yes
 SetupLogging=yes
 
+[Languages]
+Name: "chinesesimp"; MessagesFile: "ChineseSimplified.isl"
+
 [Tasks]
-Name: desktopicon; Description: "Create a desktop shortcut"; Flags: unchecked
+Name: desktopicon; Description: "创建桌面快捷方式"; Flags: unchecked
 
 [Files]
 Source: "{#BundleDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -39,4 +42,4 @@ Name: "{group}\ArcReel"; Filename: "{app}\ArcReel.exe"
 Name: "{autodesktop}\ArcReel"; Filename: "{app}\ArcReel.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\ArcReel.exe"; Description: "Launch ArcReel"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\ArcReel.exe"; Description: "启动 ArcReel 创作工作台"; Flags: nowait postinstall skipifsilent

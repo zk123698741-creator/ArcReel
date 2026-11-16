@@ -1,40 +1,38 @@
-# Windows 独立安装包
+# Windows 独立中文桌面版
 
-目标：Windows 10/11 x64。安装程序包含 Python、后端依赖、构建好的前端、
-Claude Agent SDK 自带 CLI、FFmpeg 和 Git for Windows/Bash。使用默认浏览器显示工作台。
-运行端无需安装 Python、Node.js、Docker 或 Git；AI 生成仍需联网及配置模型供应商。
+Windows 10/11 x64。安装包内置 Electron/Chromium、Python、后端依赖、React 工作台、
+Claude CLI、FFmpeg 和 Git/Bash。启动 ArcReel.exe 直接显示独立窗口，首次默认中文。
+运行端无需另装浏览器、WebView2、Python、Node.js、Docker 或 Git。AI 生成需要配置模型服务。
 
 ## GitHub 构建
 
-1. 在自己的 Fork 中启用 Actions。
-2. 打开 **Actions → Windows installer → Run workflow**，选择含构建文件的分支。
-3. 成功运行后，下载 **ArcReel-windows-x64** artifact。
-4. 解压 artifact，运行 `ArcReel-0.36.0-windows-x64-Setup.exe`；文件名版本跟随源码。
+Actions → Windows installer → Run workflow。成功后下载 ArcReel-windows-x64 artifact，
+解压并运行 ArcReel-0.36.0-windows-x64-Setup.exe。版本跟随源码，未配置代码签名。
 
-工作流先构建前端，再组装可迁移的 Python 运行时，执行两次真实启动测试，
-最后用 Inno Setup 生成 EXE 和 `SHA256SUMS.txt`。没有配置代码签名。
-每次构建要求新的输出目录，避免旧文件混入。
+流程构建原前端，按 uv.lock 安装后端，按 package-lock.json 安装 Electron 45.3.2，
+将 Chromium 完整运行时随包分发。分别执行后端和真实桌面渲染测试，再编译中文 Inno Setup 安装器。
+桌面语言初始化只修改独立 profile，后续设置中的语言选择会保留。
 
-## 安装与使用
+## 使用与升级
 
-安装到当前用户目录，无需管理员权限。开始菜单启动 **ArcReel** 后，会打开本地工作台。
-启动器的 **查看登录信息** 按钮打开首次生成的用户名和随机密码。
-登录后进入设置配置 Agent、文本、图像、视频等服务。
+启动后直接进入桌面窗口。菜单「工作台 → 查看登录信息」显示首次生成的账号密码；
+菜单也可打开数据目录和启动日志。登录后在设置中配置供应商。
+退出时确认当前生成任务已结束；程序停止本地服务。
 
-- 程序：`%LOCALAPPDATA%\Programs\ArcReel`
-- 数据：`%LOCALAPPDATA%\ArcReel\data`
-- 登录配置：`%LOCALAPPDATA%\ArcReel\desktop.env`
-- Claude 会话：`%LOCALAPPDATA%\ArcReel\claude`
-- 启动日志：`%LOCALAPPDATA%\ArcReel\desktop-launcher.log`
-- 监听：`127.0.0.1:1241`
+- 安装：默认 %LOCALAPPDATA%\Programs\ArcReel；已有安装沿用原路径。
+- 数据：%LOCALAPPDATA%\ArcReel\data
+- 登录：%LOCALAPPDATA%\ArcReel\desktop.env
+- Claude：%LOCALAPPDATA%\ArcReel\claude
+- 桌面 profile：%LOCALAPPDATA%\ArcReel\desktop-profile
+- 日志：%LOCALAPPDATA%\ArcReel\desktop-launcher.log
+- 本机接口：127.0.0.1:1241，保留认证。
 
-关闭启动器窗口会停止后端；关闭前等待生成任务结束。端口 1241 被占用时启动器提示失败。
-升级前退出启动器，备份整个 `%LOCALAPPDATA%\ArcReel`，再安装新版本。
-卸载只移除安装目录，保留用户数据。恢复时，在停止服务后还原上述数据目录。
+升级前退出旧版并备份 %LOCALAPPDATA%\ArcReel，再安装新版。
+卸载保留用户数据。外部供应商文档链接在用户点击后使用系统浏览器，工作台本身在桌面窗口内运行。
 
 ## 本地构建
 
-构建机器需要 Windows x64、Git for Windows、Node.js 24、Corepack、uv 和 Inno Setup。
+构建环境：Windows x64、Git for Windows、Node.js 24、Corepack、uv、Inno Setup。
 
 ```powershell
 cd frontend
@@ -44,13 +42,14 @@ cd ..
 uv run --no-project --python 3.13.14 python deploy/windows/build.py --output dist/windows --iscc 'C:\Program Files (x86)\Inno Setup 7\ISCC.exe'
 ```
 
-`build.py` 沿用 `uv.lock`，把 workspace 子包安装成非 editable 包；
-拷贝由 uv 管理的 Python 完整发行版和 Git 运行时，保留各自许可证。
-应用的 `LICENSE`、`NOTICE` 和 `LICENSES/` 随包分发，应用源码也随安装目录分发。
+输出目录必须全新。应用 LICENSE、NOTICE、LICENSES、源码及 Electron/Chromium 和运行时许可证随包分发。
+安装器中文资源来自 Inno Setup 官方仓库 jrsoftware/issrc，提交
+1f29baac6c6dfd35e04c237af2ea51c482ee782a，Files/Languages/ChineseSimplified.isl，
+SHA256 e0b0b350e2245f3c5e65586dfe43d574f6e7f06f2261149aba284954b3fc9a8d。
 
 ## 验证范围
 
-`smoke.py` 在清除系统 Python/Node/Git 路径后验证随包 FFmpeg、Claude CLI、Git Bash、
-中文及空格数据路径、SQLite 迁移、前端 HTML、登录、令牌校验、凭据持久化和优雅停止。
-不会调用付费模型服务。端到端生成、Windows Sandbox 全新系统安装、安装器交互和代码签名
-需要各自单独验证，构建成功不代表这些步骤已执行。
+smoke.py：清除系统运行时路径，验证随包工具、中文空格数据路径、SQLite、HTTP、认证、重启和停止。
+desktop_smoke.py：以隔离数据目录实际运行 ArcReel.exe，验证中文登录页、认证后项目页、中文菜单、
+渲染进程隔离和服务退出；生成 JSON 和页面截图。此测试不读取正式项目，也不调用付费模型。
+安装器交互、全新 Windows 系统安装、付费模型创作全流程需单独验证。

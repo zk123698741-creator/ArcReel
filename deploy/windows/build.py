@@ -21,6 +21,15 @@ def copy_tree(source, target):
     shutil.copytree(source, target, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".git"))
 
 
+def build_desktop(bundle):
+    print(run("npm.cmd", "ci", cwd=HERE))
+    print(run("node", HERE / "node_modules/electron/install.js"))
+    copy_tree(HERE / "node_modules/electron/dist", bundle)
+    (bundle / "electron.exe").replace(bundle / "ArcReel.exe")
+    copy_tree(HERE / "desktop", bundle / "resources/app")
+    return json.loads((HERE / "node_modules/electron/package.json").read_text(encoding="utf-8"))["version"]
+
+
 def main():
     os.environ["PYTHONUTF8"] = "1"
     parser = argparse.ArgumentParser()
@@ -57,13 +66,30 @@ def main():
     for name in ("LICENSE.txt", "ReleaseNotes.html"):
         if (git_root / name).is_file():
             shutil.copy2(git_root / name, bundle / "git" / name)
-    csc = Path(os.environ["WINDIR"]) / "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
-    print(run(csc, "/nologo", "/utf8output", "/target:winexe", "/platform:x64", "/reference:System.Windows.Forms.dll", f"/out:{bundle / 'ArcReel.exe'}", HERE / "Launcher.cs"))
+    electron_version = build_desktop(bundle)
     version = json.loads((ROOT / "frontend/package.json").read_text(encoding="utf-8"))["version"]
-    manifest = {"version": version, "commit": run("git", "rev-parse", "HEAD"), "python": run(python, "--version"), "git": run("git", "--version"), "git_native_dir": native_dir}
+    manifest = {
+        "version": version,
+        "commit": run("git", "rev-parse", "HEAD"),
+        "python": run(python, "--version"),
+        "git": run("git", "--version"),
+        "git_native_dir": native_dir,
+        "desktop": "embedded-electron",
+        "electron": electron_version,
+        "default_language": "zh",
+    }
     (bundle / "build-info.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(run(python, HERE / "smoke.py", "--bundle", bundle))
-    print(run(args.iscc, f"/DAppVersion={version}", f"/DBundleDir={bundle}", f"/DOutputDirPath={output}", HERE / "setup.iss"))
+    print(run(python, HERE / "desktop_smoke.py", "--bundle", bundle))
+    print(
+        run(
+            args.iscc,
+            f"/DAppVersion={version}",
+            f"/DBundleDir={bundle}",
+            f"/DOutputDirPath={output}",
+            HERE / "setup.iss",
+        )
+    )
     installer = output / f"ArcReel-{version}-windows-x64-Setup.exe"
     digest = hashlib.file_digest(installer.open("rb"), "sha256").hexdigest()
     (output / "SHA256SUMS.txt").write_text(f"{digest}  {installer.name}\n", encoding="utf-8")
