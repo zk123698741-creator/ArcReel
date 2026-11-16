@@ -53,6 +53,7 @@ jobs:
             dist/windows/*-Setup.exe
             dist/windows/SHA256SUMS.txt
             dist/windows/ArcReel/build-info.json
+            dist/windows/desktop-smoke.json*
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
