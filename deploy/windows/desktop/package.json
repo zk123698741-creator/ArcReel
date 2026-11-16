@@ -1,0 +1,6 @@
+{
+  "name": "arcreel-desktop",
+  "version": "0.36.0",
+  "main": "main.cjs",
+  "private": true
+}
