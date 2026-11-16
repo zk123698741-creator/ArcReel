@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +32,8 @@ def build_desktop(bundle):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     os.environ["PYTHONUTF8"] = "1"
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
